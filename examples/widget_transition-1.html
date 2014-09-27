@@ -26,9 +26,7 @@
 width: 100px; 
 height: 100px; 
 background: red; 
--moz-border-radius: 50px; 
--webkit-border-radius: 50px; 
-border-radius: 50px; 
+
 overflow:hidden;
 } 
 </style>
@@ -49,7 +47,8 @@ var tt = new wt.transition(),
     circle = tt.fCreateSelection('circle', '#circle');
 l1.fTransformStyles('left', '-200px', '50px').fTransformStyles('top', '50px', '50px');
 l2.fTransformStyles('left', '400px', '50px').fTransformStyles('top', '100px', '100px');
-circle.fTransformStyles('left', '0px', '100px').fTransformStyles('top', '0px', '250px');
+circle.fTransformStyles('left', '0px', '100px').fTransformStyles('top', '0px', '250px')
+.fTransformStyles('-webkit-border-radius', '0', '50px');;
 
 
 var t1 = new wt.transition();
@@ -58,7 +57,8 @@ var l4 = t1.fCreateSelection('l2', '#l2');
 circle = t1.fCreateSelection('circle', '#circle').fDuration(2000);
 l3.fTransformStyles('left', '50px', '200px').fTransformStyles('top', '50px', '450px').fTransformStyles('background-color', 'red');
 l4.fTransformStyles('left', '50px', '50px').fTransformStyles('top', '100px', '300px');
-circle.fTransformStyles('left', '250px').fTransformStyles('top', '450px').fTransformStyles('background-color', 'red');
+circle.fTransformStyles('left', '250px').fTransformStyles('top', '450px').fTransformStyles('background-color', 'red')
+.fTransformStyles('-webkit-border-radius', '0px');
 tt.fNext(t1);
 
 var t2 = new wt.transition();
@@ -67,7 +67,8 @@ var l6 = t2.fCreateSelection('l2', '#l2');
 circle = t2.fCreateSelection('circle', '#circle').fDuration(2000);
 l5.fTransformStyles('left', '50px').fTransformStyles('top', '50px').fTransformStyles('background-color', 'green');
 l6.fTransformStyles('left', '50px').fTransformStyles('top', '100px');
-circle.fTransformStyles('left', '0px').fTransformStyles('top', '0px').fTransformStyles('background-color', 'white');
+circle.fTransformStyles('left', '0px').fTransformStyles('top', '0px').fTransformStyles('background-color', 'white')
+.fTransformStyles('-webkit-border-radius', '50px');
 t1.fNext(t2);
 
 t2.fNext(t1);

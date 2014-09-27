@@ -123,26 +123,41 @@
 		fRun: function() {
 			var _this = this,
 				src = {},
-				target = {};
+				target = {},
+				tweenStyles = [];
 			for (var i in this.styles) {
 				if (this.styles[i].name) {
-					src[this.styles[i].name] = this.styles[i].initValue || {};
-					target[this.styles[i].name] = this.styles[i].targetValue || {};
+					if (!this.styles[i].initValue && typeof this.styles[i].targetValue === 'function') {
+						// Will use tween function
+						tweenStyles.push(this.styles[i]);
+					} else {
+						src[this.styles[i].name] = this.styles[i].initValue || {};
+						target[this.styles[i].name] = this.styles[i].targetValue || {};
+					}
 				} else {
 					src = this.styles[i].initValue || {};
 					target = this.styles[i].targetValue || {};
 				}
 			}
 
-			this.d3Sel.style(src)
+			var trans = this.d3Sel.style(src)
 				.transition()
 				.delay(this.delay)
 				.duration(this.duration)
 				.ease(this.ease)
-				.style(target)
-				.each('end', function() {
-					_this.parent && _this.parent.fOnSelectionEnd(_this.id, 'end');
-				});
+				.style(target);
+
+			// Apply styles with smooth tween function.
+			if (tweenStyles.length) {
+				for(var k in tweenStyles) {
+					trans = trans.styleTween(tweenStyles[k].name, tweenStyles[k].targetValue);
+				}
+			}
+
+			// Notify caller this selection has completed transition.
+			trans.each('end', function() {
+				_this.parent && _this.parent.fOnSelectionEnd(_this.id, 'end');
+			});
 		}
 	}
 
