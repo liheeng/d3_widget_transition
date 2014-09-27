@@ -1,0 +1,19 @@
+{
+  "name": "d3_widget_transition",
+  "version": "0.0.1",
+  "description": "d3_widget_transition ====================",
+  "main": "widget_transition.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/liheeng/d3_widget_transition.git"
+  },
+  "author": "Heng Li",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/liheeng/d3_widget_transition/issues"
+  },
+  "homepage": "https://github.com/liheeng/d3_widget_transition"
+}

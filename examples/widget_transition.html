@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<!-- script src="http://d3js.org/d3.v3.js"></script -->
+<script src="../bower_components/jquery/dist/jquery.js"></script>
+<script src="../bower_components/d3/d3.js"></script>
+<script src="../js/widget_transition.js"></script>
+<style>
+#container {
+    position:relative;	
+    width:300px;
+    height:500px;
+    background-color:yellow;
+	    border: solid 1px;
+}
+
+.label {
+    position:absolute;
+    left:50px;
+    top:100px;
+    border: solid 1px;
+}
+
+#circle { 
+width: 100px; 
+height: 100px; 
+background: red; 
+-moz-border-radius: 50px; 
+-webkit-border-radius: 50px; 
+border-radius: 50px; 
+overflow:hidden;
+} 
+</style>
+<body>
+<div id="container">
+    <div id="l1" class="label">This is label one.</div>
+    <div id="l2" class="label">This is label two.</div>
+    <div id="circle">
+        <div style="top:40px;left:31px;position:absolute">
+        Circle
+        </div>
+    </div>
+</div>
+<script>
+var tt = new wt.transition(),
+    l1 = tt.fCreateSelection('l1', '#l1'),
+    l2 = tt.fCreateSelection('l2', '#l2');
+l1.fStyleTransform('left', '-200px', '50px').fStyleTransform('top', '50px', '50px');
+l2.fStyleTransform('left', '400px', '50px').fStyleTransform('top', '100px', '100px');
+
+function ff() {
+	var t1 = new wt.transition();
+	var l3 = t1.fCreateSelection('l3', '#l1');
+	var l4 = t1.fCreateSelection('l4', '#l2');
+	l3.fStyleTransform('left', '50px', '200px').fStyleTransform('top', '50px', '450px');
+	l4.fStyleTransform('left', '50px', '50px').fStyleTransform('top', '100px', '300px');
+	t1.fRun();
+}
+tt.fNext(ff);
+
+tt.fRun();
+</script>
+</body>
