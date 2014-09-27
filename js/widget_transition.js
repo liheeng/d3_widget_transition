@@ -1,6 +1,4 @@
 (function() {
-	var transitionCount = 0;
-
 	function transition() {
 		return this.fInit.apply(this, arguments);
 	}
