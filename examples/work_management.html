@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<!-- script src="http://d3js.org/d3.v3.js"></script -->
+<script src="../bower_components/jquery/dist/jquery.js"></script>
+<script src="../bower_components/d3/d3.js"></script>
+<script src="../js/work_management.js"></script>
+<style>
+#container {
+    position:relative;	
+    width:300px;
+    height:500px;
+    background-color:yellow;
+	border: solid 1px;
+    overflow:hidden;
+}
+
+.label {
+    position:absolute;
+    left:50px;
+    top:100px;
+    border: solid 1px;
+}
+
+#circle { 
+    position:absolute;
+    width: 100px; 
+    height: 100px; 
+    background: red; 
+    overflow:hidden;
+} 
+</style>
+<body>
+<div id="container">
+    <div id="l1" class="label">This is label one.</div>
+    <div id="l2" class="label">This is label two.</div>
+    <div id="circle">
+        <div style="top:40px;left:31px;position:absolute">
+        Circle
+        </div>
+    </div>
+</div>
+<script>
+var context = new wm.WorkContext();
+var tt = new wm.Work(context),
+    circleJob = new wm.Transition('circle', '#circle');
+    tt.fAddJob(circleJob);
+    circleJob.fTransformStyles('left', '200px').fTransformStyles('top', '400px').fTransformStyles('background-color', 'red')
+.fTransformStyles('border-radius', '0px');
+
+var t1 = new wm.Work(context);
+circleJob = new wm.Transition('circle', '#circle').fDuration(2000);
+t1.fAddJob(circleJob);
+circleJob.fTransformStyles('left', '0px').fTransformStyles('top', '0px').fTransformStyles('background-color', 'white')
+.fTransformStyles('border-radius', '50px');
+t1.fNext(tt);
+tt.fNext(t1);
+tt.fRun();
+</script>
+</body>

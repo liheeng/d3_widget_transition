@@ -1,57 +1,56 @@
-/**
- * This file has been replaced with work_management.js and is deprecated.
- * 
- */
 (function() {
-	function transition() {
+	function WorkContext() {
+
+	}
+
+	function Work() {
 		return this.fInit.apply(this, arguments);
 	}
 
-	transition.prototype = {
-		selections: null,
-		selMap: null,
-		callCount: 0,
+	Work.prototype = {
 		next: null,
-		fInit: function() {
-			this.selections = {};
+		jobs: {},
+		callCount: null,
+		jobMap: null,
+		fInit: function(context) {
+			this.context = context;
+			this.jobs = {};
 			return this;
 		},
-		fSelection: function() {
-			if (!arguments.length) {
-				return this.selections;
-			} else {
-				this.selections[arguments[0].id] = arguments[0];
-				this.selections[arguments[0].id].parent = this;
+		fAddJob: function(job) {
+			this.jobs[job.id] = job;
+			this.jobs[job.id].parentWork = this;
+			this.jobs[job.id].context = this.context;
+			return this;
+		},
+		fRemoveJob: function(id) {
+			var job = this.jobs[id];
+			this.jobs[id] = undefined;
+			delete this.jobs[id];
+			return job;
+		},
+		fNext: function(work) {
+			if (work) {
+				this.next = work;
 				return this;
-			}
-		},
-		fCreateSelection: function(id, o) {
-			this.selections[id] = new selection(id, o);
-			this.selections[id].parent = this;
-			return this.selections[id];
-		},
-		fNext: function(_transition) {
-			if (!arguments.length) {
+			} else {
 				return this.next;
-			} else {
-				this.next = _transition;
-				return this;
 			}
 		},
 		fRun: function() {
 			this.callCount = 0; // Reset call count.
-			this.selMap = d3.map(this.selections);
-			this.selMap.forEach(function(k, v) {
-				v.fRun();
+			this.jobMap = d3.map(this.jobs);
+			this.jobMap.forEach(function(k, job) {
+				job.fRun();
 			});
 		},
-		fOnNext: function(selId, msgId) {
+		fOnJobEnd: function(jobId, msgId) {
 			if (msgId === 'end') {
 				this.callCount++;
-				if (this.callCount === this.selMap.size()) {
+				if (this.callCount === this.jobMap.size()) {
 					if (typeof this.next === 'function') {
 						this.next();
-					} else if (this.next instanceof transition) {
+					} else if (this.next instanceof Work) {
 						this.next.fRun();
 					}
 				}
@@ -59,13 +58,30 @@
 		}
 	}
 
-	function selection() {
+	function Job() {
 		return this.fInit.apply(this, arguments);
 	}
 
-	selection.prototype = {
+	Job.prototype = {
+		parentWork: null,
+		context: null,
+		fInit: function() {
+			return this;
+		},
+		fRun: function() {
+
+		},
+		fNotifyParent: function(msgId) {
+			this.parentWork && this.parentWork.fOnJobEnd(this.id, msgId);
+		}
+	}
+
+	function Transition() {
+		return this.fInit.apply(this, arguments);
+	}
+
+	Transition.prototype = $.extend({}, new Job(), {
 		id: null,
-		parent: null,
 		d3Sel: null,
 		styles: null,
 		delay: 0,
@@ -152,20 +168,22 @@
 
 			// Apply styles with smooth tween function.
 			if (tweenStyles.length) {
-				for(var k in tweenStyles) {
+				for (var k in tweenStyles) {
 					trans = trans.styleTween(tweenStyles[k].name, tweenStyles[k].targetValue);
 				}
 			}
 
 			// Notify caller this selection has completed transition.
 			trans.each('end', function() {
-				_this.parent && _this.parent.fOnNext(_this.id, 'end');
+				_this.fNotifyParent('end');
 			});
 		}
-	}
+	});
 
-	var wt = {};
-	wt.transition = transition;
-	wt.selection = selection;
-	window.wt = wt;
-})();
+	var wm = {};
+	wm.WorkContext = WorkContext;
+	wm.Work = Work;
+	wm.Job = Job;
+	wm.Transition = Transition;
+	window.wm = window.wm || wm;
+})()
