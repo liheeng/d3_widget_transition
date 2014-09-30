@@ -1,61 +1,6 @@
 (function() {
-	function WorkContext() {
+	function JobContext() {
 
-	}
-
-	function Work() {
-		return this.fInit.apply(this, arguments);
-	}
-
-	Work.prototype = {
-		next: null,
-		jobs: {},
-		callCount: null,
-		jobMap: null,
-		fInit: function(context) {
-			this.context = context;
-			this.jobs = {};
-			return this;
-		},
-		fAddJob: function(job) {
-			this.jobs[job.id] = job;
-			this.jobs[job.id].parentWork = this;
-			this.jobs[job.id].context = this.context;
-			return this;
-		},
-		fRemoveJob: function(id) {
-			var job = this.jobs[id];
-			this.jobs[id] = undefined;
-			delete this.jobs[id];
-			return job;
-		},
-		fNext: function(work) {
-			if (work) {
-				this.next = work;
-				return this;
-			} else {
-				return this.next;
-			}
-		},
-		fRun: function() {
-			this.callCount = 0; // Reset call count.
-			this.jobMap = d3.map(this.jobs);
-			this.jobMap.forEach(function(k, job) {
-				job.fRun();
-			});
-		},
-		fOnJobEnd: function(jobId, msgId) {
-			if (msgId === 'end') {
-				this.callCount++;
-				if (this.callCount === this.jobMap.size()) {
-					if (typeof this.next === 'function') {
-						this.next();
-					} else if (this.next instanceof Work) {
-						this.next.fRun();
-					}
-				}
-			}
-		}
 	}
 
 	function Job() {
@@ -63,7 +8,62 @@
 	}
 
 	Job.prototype = {
-		parentWork: null,
+		next: null,
+		tasks: {},
+		callCount: null,
+		taskMap: null,
+		fInit: function(context) {
+			this.context = context;
+			this.tasks = {};
+			return this;
+		},
+		fAddTask: function(task) {
+			this.tasks[task.id] = task;
+			this.tasks[task.id].parentJob = this;
+			this.tasks[task.id].context = this.context;
+			return this;
+		},
+		fRemoveTask: function(id) {
+			var task = this.tasks[id];
+			this.tasks[id] = undefined;
+			delete this.tasks[id];
+			return task;
+		},
+		fNext: function(job) {
+			if (job) {
+				this.next = job;
+				return this;
+			} else {
+				return this.next;
+			}
+		},
+		fRun: function() {
+			this.callCount = 0; // Reset call count.
+			this.taskMap = d3.map(this.tasks);
+			this.taskMap.forEach(function(k, task) {
+				task.fRun();
+			});
+		},
+		fOnTaskEnd: function(taskId, msgId) {
+			if (msgId === 'end') {
+				this.callCount++;
+				if (this.callCount === this.taskMap.size()) {
+					if (typeof this.next === 'function') {
+						this.next();
+					} else if (this.next instanceof Job) {
+						this.next.fRun();
+					}
+				}
+			}
+		}
+	};
+
+	function Task() {
+		return this.fInit.apply(this, arguments);
+	}
+
+	Task.prototype = {
+		parentJob: null,
 		context: null,
 		fInit: function() {
 			return this;
@@ -72,15 +72,15 @@
 
 		},
 		fNotifyParent: function(msgId) {
-			this.parentWork && this.parentWork.fOnJobEnd(this.id, msgId);
+			this.parentJob && this.parentJob.fOnTaskEnd(this.id, msgId);
 		}
-	}
+	};
 
 	function Transition() {
 		return this.fInit.apply(this, arguments);
 	}
 
-	Transition.prototype = $.extend({}, new Job(), {
+	Transition.prototype = $.extend({}, new Task(), {
 		id: null,
 		d3Sel: null,
 		styles: null,
@@ -180,10 +180,10 @@
 		}
 	});
 
-	var wm = {};
-	wm.WorkContext = WorkContext;
-	wm.Work = Work;
-	wm.Job = Job;
-	wm.Transition = Transition;
-	window.wm = window.wm || wm;
-})()
+	var jobflow = {};
+	jobflow.JobContext = JobContext;
+	jobflow.Job = Job;
+	jobflow.Task = Task;
+	jobflow.Transition = Transition;
+	window.jobflow = window.jobflow || jobflow;
+})();

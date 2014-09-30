@@ -3,7 +3,7 @@
 <!-- script src="http://d3js.org/d3.v3.js"></script -->
 <script src="../bower_components/jquery/dist/jquery.js"></script>
 <script src="../bower_components/d3/d3.js"></script>
-<script src="../js/work_management.js"></script>
+<script src="../js/jobflow.js"></script>
 <style>
 #container {
     position:relative;	
@@ -40,17 +40,17 @@
     </div>
 </div>
 <script>
-var context = new wm.WorkContext();
-var tt = new wm.Work(context),
-    circleJob = new wm.Transition('circle', '#circle');
-    tt.fAddJob(circleJob);
-    circleJob.fTransformStyles('left', '200px').fTransformStyles('top', '400px').fTransformStyles('background-color', 'red')
+var context = new jobflow.JobContext();
+var tt = new jobflow.Job(context),
+    circleTask = new jobflow.Transition('circle', '#circle');
+    tt.fAddTask(circleTask);
+    circleTask.fTransformStyles('left', '200px').fTransformStyles('top', '400px').fTransformStyles('background-color', 'red')
 .fTransformStyles('border-radius', '0px');
 
-var t1 = new wm.Work(context);
-circleJob = new wm.Transition('circle', '#circle').fDuration(2000);
-t1.fAddJob(circleJob);
-circleJob.fTransformStyles('left', '0px').fTransformStyles('top', '0px').fTransformStyles('background-color', 'white')
+var t1 = new jobflow.Job(context);
+circleTask = new jobflow.Transition('circle', '#circle').fDuration(2000);
+t1.fAddTask(circleTask);
+circleTask.fTransformStyles('left', '0px').fTransformStyles('top', '0px').fTransformStyles('background-color', 'white')
 .fTransformStyles('border-radius', '50px');
 t1.fNext(tt);
 tt.fNext(t1);

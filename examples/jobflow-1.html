@@ -3,7 +3,7 @@
 <!-- script src="http://d3js.org/d3.v3.js"></script -->
 <script src="../bower_components/jquery/dist/jquery.js"></script>
 <script src="../bower_components/d3/d3.js"></script>
-<script src="../js/work_management.js"></script>
+<script src="../js/jobflow.js"></script>
 <style>
 #container {
     position:relative;	
@@ -41,35 +41,35 @@ overflow:hidden;
     </div>
 </div>
 <script>
-var context = new wm.WorkContext();
-var tt = new wm.Work(context),
-    l1 = new wm.Transition('l1', '#l1'),
-    l2 = new wm.Transition('l2', '#l2'),
-    circle = new wm.Transition('circle', '#circle');
-tt.fAddJob(l1).fAddJob(l2).fAddJob(circle);
+var context = new jobflow.JobContext();
+var tt = new jobflow.Job(context),
+    l1 = new jobflow.Transition('l1', '#l1'),
+    l2 = new jobflow.Transition('l2', '#l2'),
+    circle = new jobflow.Transition('circle', '#circle');
+tt.fAddTask(l1).fAddTask(l2).fAddTask(circle);
 
 l1.fTransformStyles('left', '-200px', '50px').fTransformStyles('top', '50px', '50px');
 l2.fTransformStyles('left', '400px', '50px').fTransformStyles('top', '100px', '100px');
 circle.fTransformStyles('left', '0px', '100px').fTransformStyles('top', '0px', '250px')
-.fTransformStyles('-webkit-border-radius', '0', '50px');;
+.fTransformStyles('-webkit-border-radius', '0', '50px');
 
 
-var t1 = new wm.Work(context);
-var l3 = new wm.Transition('l1', '#l1').fDuration(2000);
-var l4 = new wm.Transition('l2', '#l2');
-circle = new wm.Transition('circle', '#circle').fDuration(2000);
-t1.fAddJob(l3).fAddJob(l4).fAddJob(circle);
+var t1 = new jobflow.Job(context);
+var l3 = new jobflow.Transition('l1', '#l1').fDuration(2000);
+var l4 = new jobflow.Transition('l2', '#l2');
+circle = new jobflow.Transition('circle', '#circle').fDuration(2000);
+t1.fAddTask(l3).fAddTask(l4).fAddTask(circle);
 l3.fTransformStyles('left', '50px', '200px').fTransformStyles('top', '50px', '450px').fTransformStyles('background-color', 'red');
 l4.fTransformStyles('left', '50px', '50px').fTransformStyles('top', '100px', '300px');
 circle.fTransformStyles('left', '250px').fTransformStyles('top', '450px').fTransformStyles('background-color', 'red')
 .fTransformStyles('-webkit-border-radius', '0px');
 tt.fNext(t1);
 
-var t2 = new wm.Work(context);
-var l5 = new wm.Transition('l1', '#l1').fDuration(2000);
-var l6 = new wm.Transition('l2', '#l2');
-circle = new wm.Transition('circle', '#circle').fDuration(2000);
-t2.fAddJob(l5).fAddJob(l6).fAddJob(circle);
+var t2 = new jobflow.Job(context);
+var l5 = new jobflow.Transition('l1', '#l1').fDuration(2000);
+var l6 = new jobflow.Transition('l2', '#l2');
+circle = new jobflow.Transition('circle', '#circle').fDuration(2000);
+t2.fAddTask(l5).fAddTask(l6).fAddTask(circle);
 
 l5.fTransformStyles('left', '50px').fTransformStyles('top', '50px').fTransformStyles('background-color', 'green');
 l6.fTransformStyles('left', '50px').fTransformStyles('top', '100px');
