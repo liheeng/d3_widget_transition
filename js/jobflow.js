@@ -73,9 +73,13 @@
         fRun: function () {
             this.callCount = 0; // Reset call count.
             this.taskMap = d3.map(this.tasks);
-            this.taskMap.forEach(function (k, task) {
-                task.fRun();
-            });
+            if (this.taskMap.size() > 0) {
+                this.taskMap.forEach(function (k, task) {
+                    task.fRun();
+                });
+            } else if (this.next ) {
+                this.fOnTaskEnd(this.id, 'end');
+            }
         },
         fOnTaskEnd: function (taskId, msgId) {
             if (msgId === 'end') {
@@ -177,39 +181,44 @@
                 src = {},
                 target = {},
                 tweenStyles = [];
-            for (var i in this.styles) {
-                if (this.styles[i].name) {
-                    if (!this.styles[i].initValue && typeof this.styles[i].targetValue === 'function') {
-                        // Will use tween function
-                        tweenStyles.push(this.styles[i]);
+            if (this.d3Sel && this.styles.length > 0) {
+                for (var i in this.styles) {
+                    if (this.styles[i].name) {
+                        if (!this.styles[i].initValue && typeof this.styles[i].targetValue === 'function') {
+                            // Will use tween function
+                            tweenStyles.push(this.styles[i]);
+                        } else {
+                            src[this.styles[i].name] = this.styles[i].initValue || {};
+                            target[this.styles[i].name] = this.styles[i].targetValue || {};
+                        }
                     } else {
-                        src[this.styles[i].name] = this.styles[i].initValue || {};
-                        target[this.styles[i].name] = this.styles[i].targetValue || {};
+                        src = this.styles[i].initValue || {};
+                        target = this.styles[i].targetValue || {};
                     }
-                } else {
-                    src = this.styles[i].initValue || {};
-                    target = this.styles[i].targetValue || {};
                 }
-            }
 
-            var trans = this.d3Sel.style(src)
-                .transition()
-                .delay(this.delay)
-                .duration(this.duration)
-                .ease(this.ease)
-                .style(target);
+                var trans = this.d3Sel.style(src)
+                    .transition()
+                    .delay(this.delay)
+                    .duration(this.duration)
+                    .ease(this.ease)
+                    .style(target);
 
-            // Apply styles with smooth tween function.
-            if (tweenStyles.length) {
-                for (var k in tweenStyles) {
-                    trans = trans.styleTween(tweenStyles[k].name, tweenStyles[k].targetValue);
+                // Apply styles with smooth tween function.
+                if (tweenStyles.length) {
+                    for (var k in tweenStyles) {
+                        trans = trans.styleTween(tweenStyles[k].name, tweenStyles[k].targetValue);
+                    }
                 }
-            }
 
-            // Notify caller this selection has completed transition.
-            trans.each('end', function () {
-                _this.fNotifyParent('end');
-            });
+
+                // Notify caller this selection has completed transition.
+                trans.each('end', function () {
+                    _this.fNotifyParent('end');
+                });
+            } else {
+               _this.fNotifyParent('end');
+            }
         }
     });
 
