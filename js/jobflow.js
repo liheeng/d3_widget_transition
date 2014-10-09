@@ -3,8 +3,8 @@
  *
  * Jobflow is a javascript implementation to support front-end job schedule of web element.
  * <p>
- * This simple implementation includes JobContext class, Job class, Task class and Transition
- * task class to support d3js transition.
+ * This simple implementation includes JobContext class, Job class, Task class , CreationTask and TransitionTask
+ * class to support d3js transition.
  * <p>
  * <b>JobContext:</b>
  *      The JobContext class stores job context information to be used by job and task.
@@ -15,7 +15,9 @@
  * <b>Task:</b>
  *      The Task class is a abstract class and defines fRun and fNotifyParent functions, <br>
  * this class should be implemented to support different case and require.
- * <b>Transition:</b>
+ * <b>CreationTask:</b>
+ *      This creation class is used to define element creation.
+ * <b>TransitionTask:</b>
  *      The Transition class is an implementation of Task to support d3js transition functions.
  * <p>
  * Examples:
@@ -56,13 +58,18 @@
             this.tasks[task.id].context = this.context;
             return this;
         },
+        fCreateTask: function (taskClass, args) {
+            var task = taskClass.apply(new taskClass(), args);
+            this.fAddTask(task);
+            return task;
+        },
         fRemoveTask: function (id) {
             var task = this.tasks[id];
             this.tasks[id] = undefined;
             delete this.tasks[id];
             return task;
         },
-        fPrevious: function(job) {
+        fPrevious: function (job) {
             if (job) {
                 job.next = this;
             }
@@ -83,7 +90,7 @@
                 this.taskMap.forEach(function (k, task) {
                     task.fRun();
                 });
-            } else if (this.next ) {
+            } else if (this.next) {
                 this.fOnTaskEnd(this.id, 'end');
             }
         },
@@ -111,7 +118,7 @@
         fInit: function () {
             return this;
         },
-        fInject: function(job) {
+        fInject: function (job) {
             job.fAddTask(this);
             return this;
         },
@@ -130,19 +137,19 @@
 
     CreationTask.prototype = $.extend({}, new Task(), {
         callbacks: null,
-        fInit:function(id) {
+        fInit: function (id) {
             this.id = id;
             this.callbacks = [];
             return this;
         },
-        fRun: function() {
-            for(var callback in this.callbacks) {
+        fRun: function () {
+            for (var callback in this.callbacks) {
                 callback();
             }
             this.fNotifyParent('end');
             return this;
         },
-        fAddCallBack: function(callback) {
+        fAddCallBack: function (callback) {
             this.callbacks.push(callback);
             return this;
         }
@@ -155,7 +162,13 @@
     TransitionTask.prototype = $.extend({}, new Task(), {
         id: null,
         d3Sel: null,
+        attrs: null,
         styles: null,
+        tweens: null,
+        transStyles: null,
+        transAttrs: null,
+        srcText: undefined,
+        targetText: undefined,
         delay: 0,
         duration: 750,
         ease: 'cubic-in-out',
@@ -168,7 +181,13 @@
         fInit: function (id, container) {
             this.id = id;
             this.d3Sel = (typeof container === 'string') ? d3.selectAll(container) : container;
+            this.attrs = [];
             this.styles = [];
+            this.tweens =[];
+            this.transStyles = [];
+            this.transAttrs = [];
+            this.srcText = undefined;
+            this.targetText = undefined;
             return this;
         },
         fDelay: function () {
@@ -195,83 +214,182 @@
                 return this;
             }
         },
-        fTransformStyles: function (styleName, srcValue, targetValue) {
-            if (targetValue) {
-                this.styles.push({
-                    'name': styleName,
-                    'srcValue': srcValue,
-                    'targetValue': targetValue
+        fAttr: function() {
+            this.attrs.push([].slice.call(arguments));
+            return this;
+        },
+        fStyle: function() {
+            this.styles.push([].slice.call(arguments));
+            return this;
+        },
+        fText: function(text) {
+            if (!arguments.length) {
+                return this.srcText;
+            } else {
+                this.srcText = text + '';
+                return this;
+            }
+        },
+        fTween: function(name, tweenFunc) {
+            this.tweens.push([].slice.call(arguments));
+            return this;
+        },
+        fTransformAttr: function (attrName, srcAttr, targetAttr) {
+            if (targetAttr) {
+                this.transAttrs.push({
+                    'name': attrName,
+                    "srcAttr": srcAttr,
+                    'targetAttr': targetAttr
                 });
             } else {
-                if (typeof styleName === 'string') {
-                    this.styles.push({
-                        'name': styleName,
-                        'targetValue': srcValue
+                if (typeof attrName === 'string') {
+                    this.transAttrs.push({
+                        'name': attrName,
+                        'targetAttr': srcAttr
                     });
                 } else {
-                    this.styles.push({
-                        'srcValue': styleName,
-                        'targetValue': srcValue
+                    this.transAttrs.push({
+                        'srcAttr': attrName,
+                        'targetAttr': srcAttr
                     });
                 }
             }
             return this;
         },
+        fTransformStyle: function (styleName, srcStyle, targetStyle) {
+            if (targetStyle) {
+                this.transStyles.push({
+                    'name': styleName,
+                    "srcStyle": srcStyle,
+                    "targetStyle": targetStyle
+                });
+            } else {
+                if (typeof styleName === 'string') {
+                    this.transStyles.push({
+                        'name': styleName,
+                        "targetStyle": srcStyle
+                    });
+                } else {
+                    this.transStyles.push({
+                        "srcStyle": styleName,
+                        "targetStyle": srcStyle
+                    });
+                }
+            }
+            return this;
+        },
+        fTransformText: function (srcText, targetText) {
+            this.srcText = targetText ? srcText : undefined;
+            this.targetText = targetText ? targetText : srcText;
+            return this;
+        },
         fRun: function () {
             var _this = this,
-                src = {},
-                target = {},
-                tweenStyles = [];
-            if (this.d3Sel && this.styles.length > 0) {
-                for (var i in this.styles) {
-                    if (this.styles[i].name) {
-                        if (!this.styles[i].srcValue && typeof this.styles[i].targetValue === 'function') {
+                srcStyle = {},
+                targetStyle = {},
+                tweenStyles = [],
+                srcAttr = {},
+                targetAttr = {},
+                tweenAttrs = [];
+
+            if (this.d3Sel && (this.transStyles.length > 0 || this.transAttrs.length > 0 || this.srcText || this.targetText)) {
+                for (var i in this.transStyles) {
+                    if (this.transStyles[i].name) {
+                        if (!this.transStyles[i].srcStyle && typeof this.transStyles[i].targetStyle === 'function') {
                             // Will use tween function
-                            tweenStyles.push(this.styles[i]);
+                            tweenStyles.push(this.transStyles[i]);
                         } else {
-                            if (this.styles[i].srcValue) {
-                                src[this.styles[i].name] = this.styles[i].srcValue;
+                            if (this.transStyles[i].srcStyle) {
+                                srcStyle[this.transStyles[i].name] = this.transStyles[i].srcStyle;
                             }
-                            if (this.styles[i].targetValue) {
-                                target[this.styles[i].name] = this.styles[i].targetValue;
+                            if (this.transStyles[i].targetStyle) {
+                                targetStyle[this.transStyles[i].name] = this.transStyles[i].targetStyle;
                             }
                         }
                     } else {
-                        src = this.styles[i].srcValue;
-                        target = this.styles[i].targetValue;
+                        srcStyle = this.transStyles[i].srcStyle;
+                        targetStyle = this.transStyles[i].targetStyle;
+                    }
+                }
+
+                for (var i in this.transAttrs) {
+                    if (this.transAttrs[i].name) {
+                        if (!this.transAttrs[i].srcAttr && typeof this.transAttrs[i].targetAttr === 'function') {
+                            // Will use tween function
+                            tweenStyles.push(this.transAttrs[i]);
+                        } else {
+                            if (this.transAttrs[i].srcAttr) {
+                                srcStyle[this.transAttrs[i].name] = this.transAttrs[i].srcAttr;
+                            }
+                            if (this.transAttrs[i].targetAttr) {
+                                targetStyle[this.transAttrs[i].name] = this.transAttrs[i].targetAttr;
+                            }
+                        }
+                    } else {
+                        srcStyle = this.transStyles[i].srcAttr;
+                        targetStyle = this.transStyles[i].targetAttr;
                     }
                 }
 
                 var size = this.d3Sel.size(), count = 0;
                 var trans = this.d3Sel;
-                if (!d3.map(src).empty()) {
-                    trans = trans.style(src);
+                if (!d3.map(srcAttr).empty()) {
+                    trans = trans.attr(srcAttr);
                 }
+                if (!d3.map(srcStyle).empty()) {
+                    trans = trans.style(srcStyle);
+                }
+                if (this.srcText !== undefined) {
+                    trans = trans.text(this.srcText);
+                }
+                for(var k in this.attrs) {
+                    trans.attr.apply(trans, this.attrs[k]);
+                }
+                for(k in this.styles) {
+                    trans.style.apply(trans, this.styles[k]);
+                }
+
                 trans = trans.transition()
                     .delay(this.delay)
                     .duration(this.duration)
-                    .ease(this.ease);
-                // Notify caller this selection has completed transition.
-                trans.each('end', function () {
-                    count++;
-                    if (count === size) {
-                        _this.fNotifyParent('end');
-                    }
-                });
-                if (!d3.map(target).empty()) {
-                    trans.style(target);
+                    .ease(this.ease)
+                    .each('end', function () {
+                        // Notify caller this selection has completed transition.
+                        count++;
+                        if (count === size) {
+                            _this.fNotifyParent('end');
+                        }
+                    });
+
+
+                for(k in this.tweens) {
+                    trans.tween.apply(trans, this.tweens[k]);
                 }
 
-                // Apply styles with smooth tween function.
+                if (this.targetText !== undefined) {
+                    trans = trans.text(this.targetText);
+                }
+                if (!d3.map(targetAttr).empty()) {
+                    trans.attr(targetAttr);
+                }
+                if (!d3.map(targetStyle).empty()) {
+                    trans.style(targetStyle);
+                }
+
+                // Apply attributes and styles with smooth tween function.
+                if (tweenAttrs.length) {
+                    for (var k in tweenAttrs) {
+                        trans = trans.attrTween(tweenAttrs[k].name, tweenAttrs[k].targetAttr);
+                    }
+                }
                 if (tweenStyles.length) {
                     for (var k in tweenStyles) {
-                        trans = trans.styleTween(tweenStyles[k].name, tweenStyles[k].targetValue);
+                        trans = trans.styleTween(tweenStyles[k].name, tweenStyles[k].targetStyle);
                     }
                 }
 
-
             } else {
-               _this.fNotifyParent('end');
+                _this.fNotifyParent('end');
             }
 
             return this;

@@ -43,22 +43,22 @@ overflow:hidden;
 <script>
     var context = new jobflow.JobContext();
     var tt = new jobflow.Job(context),
-            l1 = new jobflow.TransitionTask('l1', '#l1').fInject(tt).fTransformStyles('left', '-200px', '50px').fTransformStyles('top', '50px', '50px'),
-            l2 = new jobflow.TransitionTask('l2', '#l2').fInject(tt).fTransformStyles('left', '400px', '50px').fTransformStyles('top', '100px', '100px'),
-            circle = new jobflow.TransitionTask('circle', '#circle').fInject(tt).fTransformStyles('left', '0px', '100px').fTransformStyles('top', '0px', '250px')
-                    .fTransformStyles('-webkit-border-radius', '0', '50px');
+            l1 = new jobflow.TransitionTask('l1', '#l1').fInject(tt).fTransformStyle('left', '-200px', '50px').fTransformStyle('top', '50px', '50px'),
+            l2 = new jobflow.TransitionTask('l2', '#l2').fInject(tt).fTransformStyle('left', '400px', '50px').fTransformStyle('top', '100px', '100px'),
+            circle = new jobflow.TransitionTask('circle', '#circle').fInject(tt).fTransformStyle('left', '0px', '100px').fTransformStyle('top', '0px', '250px')
+                    .fTransformStyle('-webkit-border-radius', '0', '50px');
 
     var t1 = new jobflow.Job(context).fPrevious(tt),
-            l3 = new jobflow.TransitionTask('l1', '#l1').fInject(t1).fDuration(2000).fTransformStyles('left', '50px', '200px').fTransformStyles('top', '50px', '450px').fTransformStyles('background-color', 'red'),
-            l4 = new jobflow.TransitionTask('l2', '#l2').fInject(t1).fTransformStyles('left', '50px', '50px').fTransformStyles('top', '100px', '300px'),
-            circle = new jobflow.TransitionTask('circle', '#circle').fInject(t1).fDuration(2000).fTransformStyles('left', '250px').fTransformStyles('top', '450px').fTransformStyles('background-color', 'red')
-                    .fTransformStyles('-webkit-border-radius', '0px');
+            l3 = new jobflow.TransitionTask('l1', '#l1').fInject(t1).fDuration(2000).fTransformStyle('left', '50px', '200px').fTransformStyle('top', '50px', '450px').fTransformStyle('background-color', 'red'),
+            l4 = new jobflow.TransitionTask('l2', '#l2').fInject(t1).fTransformStyle('left', '50px', '50px').fTransformStyle('top', '100px', '300px'),
+            circle = new jobflow.TransitionTask('circle', '#circle').fInject(t1).fDuration(2000).fTransformStyle('left', '250px').fTransformStyle('top', '450px').fTransformStyle('background-color', 'red')
+                    .fTransformStyle('-webkit-border-radius', '0px');
 
     var t2 = new jobflow.Job(context).fPrevious(t1);
-    l5 = new jobflow.TransitionTask('l1', '#l1').fInject(t2).fDuration(2000).fTransformStyles('left', '50px').fTransformStyles('top', '50px').fTransformStyles('background-color', 'green'),
-            l6 = new jobflow.TransitionTask('l2', '#l2').fInject(t2).fTransformStyles('left', '50px').fTransformStyles('top', '100px'),
-            circle = new jobflow.TransitionTask('circle', '#circle').fInject(t2).fDuration(2000).fTransformStyles('left', '0px').fTransformStyles('top', '0px').fTransformStyles('background-color', 'white')
-                    .fTransformStyles('-webkit-border-radius', '50px');
+    l5 = new jobflow.TransitionTask('l1', '#l1').fInject(t2).fDuration(2000).fTransformStyle('left', '50px').fTransformStyle('top', '50px').fTransformStyle('background-color', 'green'),
+            l6 = new jobflow.TransitionTask('l2', '#l2').fInject(t2).fTransformStyle('left', '50px').fTransformStyle('top', '100px'),
+            circle = new jobflow.TransitionTask('circle', '#circle').fInject(t2).fDuration(2000).fTransformStyle('left', '0px').fTransformStyle('top', '0px').fTransformStyle('background-color', 'white')
+                    .fTransformStyle('-webkit-border-radius', '50px');
 
     t2.fNext(t1);
 

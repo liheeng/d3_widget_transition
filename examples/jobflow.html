@@ -44,19 +44,19 @@
     var tt = new jobflow.Job(context),
             circleTask = new jobflow.TransitionTask('circle', '#circle')
                     .fInject(tt)
-                    .fTransformStyles('left', '200px')
-                    .fTransformStyles('top', '400px')
-                    .fTransformStyles('background-color', 'red')
-                    .fTransformStyles('border-radius', '0px');
+                    .fTransformStyle('left', '200px')
+                    .fTransformStyle('top', '400px')
+                    .fTransformStyle('background-color', 'red')
+                    .fTransformStyle('border-radius', '0px');
 
     var t1 = new jobflow.Job(context).fPrevious(tt);
     circleTask = new jobflow.TransitionTask('circle', '#circle')
             .fInject(t1)
             .fDuration(2000)
-            .fTransformStyles('left', '0px')
-            .fTransformStyles('top', '0px')
-            .fTransformStyles('background-color', 'white')
-            .fTransformStyles('border-radius', '50px');
+            .fTransformStyle('left', '0px')
+            .fTransformStyle('top', '0px')
+            .fTransformStyle('background-color', 'white')
+            .fTransformStyle('border-radius', '50px');
 
     t1.fNext(tt);
     tt.fRun();
