@@ -83,6 +83,11 @@
                 return this.next;
             }
         },
+        fCreateNext: function() {
+            var job = new Job(this.context);
+            this.fNext(job);
+            return job;
+        },
         fRun: function () {
             this.callCount = 0; // Reset call count.
             this.taskMap = d3.map(this.tasks);
