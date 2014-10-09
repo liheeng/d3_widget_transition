@@ -62,6 +62,12 @@
             delete this.tasks[id];
             return task;
         },
+        fPrevious: function(job) {
+            if (job) {
+                job.next = this;
+            }
+            return this;
+        },
         fNext: function (job) {
             if (job) {
                 this.next = job;
@@ -105,28 +111,63 @@
         fInit: function () {
             return this;
         },
+        fInject: function(job) {
+            job.fAddTask(this);
+            return this;
+        },
         fRun: function () {
-
+            return this;
         },
         fNotifyParent: function (msgId) {
             this.parentJob && this.parentJob.fOnTaskEnd(this.id, msgId);
+            return this;
         }
     };
 
-    function Transition() {
+    function CreationTask() {
         return this.fInit.apply(this, arguments);
     }
 
-    Transition.prototype = $.extend({}, new Task(), {
+    CreationTask.prototype = $.extend({}, new Task(), {
+        callbacks: null,
+        fInit:function(id) {
+            this.id = id;
+            this.callbacks = [];
+            return this;
+        },
+        fRun: function() {
+            for(var callback in this.callbacks) {
+                callback();
+            }
+            this.fNotifyParent('end');
+            return this;
+        },
+        fAddCallBack: function(callback) {
+            this.callbacks.push(callback);
+            return this;
+        }
+    });
+
+    function TransitionTask() {
+        return this.fInit.apply(this, arguments);
+    }
+
+    TransitionTask.prototype = $.extend({}, new Task(), {
         id: null,
         d3Sel: null,
         styles: null,
         delay: 0,
         duration: 750,
         ease: 'cubic-in-out',
-        fInit: function (id, o) {
+        /**
+         *
+         * @param id identify of this task
+         * @param container element id or element class name or element tag name or d3 selection object.
+         * @returns {TransitionTask}
+         */
+        fInit: function (id, container) {
             this.id = id;
-            this.d3Sel = d3.selectAll(o);
+            this.d3Sel = (typeof container === 'string') ? d3.selectAll(container) : container;
             this.styles = [];
             return this;
         },
@@ -154,23 +195,23 @@
                 return this;
             }
         },
-        fTransformStyles: function (styleName, initValue, targetValue) {
+        fTransformStyles: function (styleName, srcValue, targetValue) {
             if (targetValue) {
                 this.styles.push({
                     'name': styleName,
-                    'initValue': initValue,
+                    'srcValue': srcValue,
                     'targetValue': targetValue
                 });
             } else {
                 if (typeof styleName === 'string') {
                     this.styles.push({
                         'name': styleName,
-                        'targetValue': initValue
+                        'targetValue': srcValue
                     });
                 } else {
                     this.styles.push({
-                        'initValue': styleName,
-                        'targetValue': initValue
+                        'srcValue': styleName,
+                        'targetValue': srcValue
                     });
                 }
             }
@@ -184,25 +225,42 @@
             if (this.d3Sel && this.styles.length > 0) {
                 for (var i in this.styles) {
                     if (this.styles[i].name) {
-                        if (!this.styles[i].initValue && typeof this.styles[i].targetValue === 'function') {
+                        if (!this.styles[i].srcValue && typeof this.styles[i].targetValue === 'function') {
                             // Will use tween function
                             tweenStyles.push(this.styles[i]);
                         } else {
-                            src[this.styles[i].name] = this.styles[i].initValue || {};
-                            target[this.styles[i].name] = this.styles[i].targetValue || {};
+                            if (this.styles[i].srcValue) {
+                                src[this.styles[i].name] = this.styles[i].srcValue;
+                            }
+                            if (this.styles[i].targetValue) {
+                                target[this.styles[i].name] = this.styles[i].targetValue;
+                            }
                         }
                     } else {
-                        src = this.styles[i].initValue || {};
-                        target = this.styles[i].targetValue || {};
+                        src = this.styles[i].srcValue;
+                        target = this.styles[i].targetValue;
                     }
                 }
 
-                var trans = this.d3Sel.style(src)
-                    .transition()
+                var size = this.d3Sel.size(), count = 0;
+                var trans = this.d3Sel;
+                if (!d3.map(src).empty()) {
+                    trans = trans.style(src);
+                }
+                trans = trans.transition()
                     .delay(this.delay)
                     .duration(this.duration)
-                    .ease(this.ease)
-                    .style(target);
+                    .ease(this.ease);
+                // Notify caller this selection has completed transition.
+                trans.each('end', function () {
+                    count++;
+                    if (count === size) {
+                        _this.fNotifyParent('end');
+                    }
+                });
+                if (!d3.map(target).empty()) {
+                    trans.style(target);
+                }
 
                 // Apply styles with smooth tween function.
                 if (tweenStyles.length) {
@@ -212,13 +270,11 @@
                 }
 
 
-                // Notify caller this selection has completed transition.
-                trans.each('end', function () {
-                    _this.fNotifyParent('end');
-                });
             } else {
                _this.fNotifyParent('end');
             }
+
+            return this;
         }
     });
 
@@ -226,6 +282,8 @@
     jobflow.JobContext = JobContext;
     jobflow.Job = Job;
     jobflow.Task = Task;
-    jobflow.Transition = Transition;
+    jobflow.CreationTask = CreationTask;
+    jobflow.TransitionTask = TransitionTask;
+
     window.jobflow = window.jobflow || jobflow;
 })();
